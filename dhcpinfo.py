@@ -7,15 +7,24 @@
 #  Tested with isc-dhcp-server 4.2.4
 
 
+#
+#Program Variables
+#
+DHCPLeasesFile="/var/lib/dhcp/dhcpd.leases"
+dhcpinfo_version="0.2"
 
 
 import os
 import re
 
-
-#Dhcp Lease Class
 class DhcpLease:
-    """DHCP lease class"""
+    """
+    DHCP lease class
+    This class is used to store information 
+    needed from each lease. This class can be
+    extended with more information if we need 
+    more parmeters.
+    """
     IP = 0
     MAC = 0
     StartDate = 0
@@ -23,6 +32,16 @@ class DhcpLease:
     State = 'Free'
     
     def __init__(self, ip , mac , SDate, EDate, state):
+        """
+        Class Constructor
+        Feeds all information needed for the class
+        Parameters
+        ip: Lease's IP address
+        mac: Lease's MAC address
+        SDate: Lease's start date
+        EDate: Lease's end date
+        state: Lease's state
+        """
          self.IP = ip
          self.MAC = mac
          self.StartDate = SDate
@@ -30,12 +49,18 @@ class DhcpLease:
          self.State = state
 
     def PrintLease(self):
+        """
+        Method to print class information
+        in a tabbed format
+        """
         print("{}\t{}\t{}\t{}\t {}".format(self.IP,self.MAC,self.StartDate,self.EndDate,self.State))
     
 
     
 class IscDhcpLeases:
-    """Class to Save and iterate leases from a file """
+    """
+    Class to parse save and iterate leases from a file
+    """
     #Lease File default /var/lib/dhcp/dhcpd.leases
     IscDhcpLeaseFile = "/var/lib/dhcp/dhcpd.leases"
     # List of all leases Current Leases
@@ -43,32 +68,45 @@ class IscDhcpLeases:
     # List of all leases extracted in raw format from file
     IscDhcpLeasesRaw = []
     
-    
-    #Constructor
     def __init__(self, DhcpLeaseFile):
+        """
+        Constructor 
+        Parameters
+        DhcpLeaseFile: isc dhcpd lease filename
+        """
         command = 'cat {}'.format(DhcpLeaseFile)
         cmdText = os.popen(command).read()
         text = r"""%s""" % cmdText
-        self.IscDhcpLeasesRaw = re.findall('lease [0-9]*.[0-9]*.[0-9]*.[0-9]* {.*?}',text,re.DOTALL)
-        self.ParseLeases()
+        self.ParseLeases(text)
 
-    #Method to parse all the leases
-    def ParseLeases(self):
+    def ParseLeases(self, leaseText):
+        """
+        Method to parse lease parameters from text
+        """
+        #Parse text to extract all blocks of leases into a list
+        self.IscDhcpLeasesRaw = re.findall('lease [0-9]*.[0-9]*.[0-9]*.[0-9]* {.*?}',leaseText,re.DOTALL)
+
         #here we loop backwards because the file gets apended with updates and the newest
-        #information is valid from top to bottom
-        for LeaseRaw in self.IscDhcpLeasesRaw:
+        #information is valid from bottom to top
+        for LeaseRaw in reversed(self.IscDhcpLeasesRaw):
             # Get the IP from the lease
             IPraw = re.findall('lease ([0-9]*\.[0-9]*\.[0-9]*\.[0-9]*) {',LeaseRaw,re.DOTALL)
-            # find if the IP is already added to the CURRENT lease list
+            #find if the IP is already added to the CURRENT lease list and keep parsing
+            #parameters. Otherwise if IP is already there do nothing.
             if not self.FindCurrentIp(IPraw[0]):
+                #parse mac address
                 MACraw = re.findall('hardware ethernet ([a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2}:[a-fA-F0-9]{2});',LeaseRaw,re.DOTALL)
+                #test if we got a mac address
                 if not MACraw:
                     MAC=None
                 else:
                     MAC=MACraw[0]
+                #parse start date
                 STARTraw = re.findall('starts [0-9] ([0-9]{4}\/[0-9]{2}\/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})',LeaseRaw,re.DOTALL)
+                #parse end date
                 ENDSraw = re.findall('ends [0-9] ([0-9]{4}\/[0-9]{2}\/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})',LeaseRaw,re.DOTALL)
-
+                
+                #che lease state
                 if LeaseRaw.find("  binding state active;")!=-1:
                     STATEraw = 'Active'
                 else:
@@ -77,12 +115,14 @@ class IscDhcpLeases:
                     else:
                         if LeaseRaw.find("  binding state free;")!=-1:
                             STATEraw = 'Free'
-
+                #insert this lease into the current lease list
                 self.IscDhcpLeases.append(DhcpLease(IPraw[0],MAC,STARTraw[0],ENDSraw[0],STATEraw))
         
 
-    #Method to find if IP was already added to the list
     def FindCurrentIp(self, ip):
+        """
+        Method to find an IP address in current IscDhcpLeases list
+        """
         for Lease in self.IscDhcpLeases:
             if Lease.IP == ip:
                 return 1
@@ -91,13 +131,22 @@ class IscDhcpLeases:
         
 
     def PrintCurrentLeases(self):
+        """
+        method to print all current leases
+        """
         for Lease in reversed(sorted(self.IscDhcpLeases,key=lambda Lease: Lease.IP)):
             Lease.PrintLease()
     
     def PrintIscLeasesRaw(self):
+        """
+        method to print IscDhcpLeasesRaw this is for debugging
+        """
         print self.IscDhcpLeasesRaw
                 
     def GetCurrentFreeLeases(self):
+        """
+        Method to count all current free leases
+        """
         freeLeaseCount = 0
         for Lease in self.IscDhcpLeases:
             if Lease.State == 'Free':
@@ -105,6 +154,9 @@ class IscDhcpLeases:
         return freeLeaseCount
             
     def GetCurrentActiveLeases(self):
+        """
+        Method to count all current Active leases
+        """
         activeLeaseCount = 0
         for Lease in self.IscDhcpLeases:
             if Lease.State == 'Active':
@@ -112,6 +164,9 @@ class IscDhcpLeases:
         return activeLeaseCount
 
     def GetCurrentAbandonedLeases(self):
+        """
+        Method to count all current Abandoned leases
+        """
         abandonedLeaseCount = 0
         for Lease in self.IscDhcpLeases:
             if Lease.State == 'Abandoned':
@@ -122,8 +177,7 @@ class IscDhcpLeases:
                 
                 
 print "Lease IP\t    MAC\t                     StartDate\t               EndDate"    
-LEASE = IscDhcpLeases("/var/lib/dhcp/dhcpd.leases")
-#LEASE.PrintIscLeasesRaw()
+LEASE = IscDhcpLeases(DHCPLeasesFile)
 LEASE.PrintCurrentLeases()
 print LEASE.GetCurrentFreeLeases()
 print LEASE.GetCurrentActiveLeases()

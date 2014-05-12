@@ -1,4 +1,11 @@
 CHANGELOG
 
+-Version 0.2
+Added TODO file
+Some code styling done to dhcpinfo.py
+Added better description to clases and methods
+BUGFIX we were looping the file from top to bottom. It should be looping the file from bottom
+    to top since most updated info is appended to the file.
+
 -Version 0.1
 This version is the initial version. DHCP file parser clases with limited functionality.
