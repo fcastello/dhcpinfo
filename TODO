@@ -1,0 +1,8 @@
+TODO's
+
+-Create a library for clases and import it on the main program.
+-Add command line parameters parsing and document usage.
+-Add flags to 
+-Treat IP addresses as IP addresses and not strings as we treat it now.
+-Since IP addresses are strings ordering them is not as it shoulbe. Fix this.
+
