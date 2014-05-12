@@ -129,7 +129,31 @@ class IscDhcpLeases:
         """
         for Lease in reversed(sorted(self.IscDhcpLeases,key=lambda Lease: Lease.IP)):
             Lease.PrintLease()
-    
+            
+    def PrintActiveLeases(self):
+        """
+        method to print current Active leases
+        """
+        for Lease in reversed(sorted(self.IscDhcpLeases,key=lambda Lease: Lease.IP)):
+            if Lease.State == "Active":
+                Lease.PrintLease()
+
+    def PrintFreeLeases(self):
+        """
+        method to print current Free leases
+        """
+        for Lease in reversed(sorted(self.IscDhcpLeases,key=lambda Lease: Lease.IP)):
+            if Lease.State == "Free":
+                Lease.PrintLease()
+
+    def PrintAbandonedLeases(self):
+        """
+        method to print current Abandoned leases
+        """
+        for Lease in reversed(sorted(self.IscDhcpLeases,key=lambda Lease: Lease.IP)):
+            if Lease.State == "Abandoned":
+                Lease.PrintLease()
+
     def PrintIscLeasesRaw(self):
         """
         method to print IscDhcpLeasesRaw this is for debugging

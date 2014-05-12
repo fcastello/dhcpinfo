@@ -7,20 +7,63 @@
 #  Tested with isc-dhcp-server 4.2.4
 
 import dhcpinfolib
+import argparse
+import os
 #
 #Program Variables
 #
-#DHCPLeasesFile="/var/lib/dhcp/dhcpd.leases"
-DHCPLeasesFile="lease3"
-dhcpinfo_version="0.3"
+DHCPLeasesFile="/var/lib/dhcp/dhcpd.leases"
+dhcpinfo_version="0.4"
+    
 
-
-                
-print "Lease IP\t    MAC\t                     StartDate\t               EndDate"    
+parser = argparse.ArgumentParser(description="ISC DHCP Server Lease file information")
+parser.add_argument("leaseFile", help="Leases File")
+parser.add_argument("-a", "--all", help="Show All Leases Info", action="store_true")
+parser.add_argument("-f", "--free", help="Show Free Leases Info",action="store_true")
+parser.add_argument("-c", "--active", help="Show Active Leases Info",action="store_true")
+parser.add_argument("-d", "--abandoned", help="Show Abandoned Leases Info", action="store_true")
+parser.add_argument("-v", "--version", action='version', version='%(prog)s version {}'.format(dhcpinfo_version))
+args = parser.parse_args()
+if args.leaseFile:
+    DHCPLeasesFile=args.leaseFile
+    if os.path.exists(DHCPLeasesFile):
+        if os.path.isfile(DHCPLeasesFile) or os.path.isfile(DHCPLeasesFile):
+            print("File analized: {}\n\n".format(DHCPLeasesFile))
+        else:
+            print("{} is not a regular file or link".format(DHCPLeasesFile))
+            exit(1)
+    else:
+        print("{} does not exist".format(DHCPLeasesFile))
+        exit(1)
+    
+    
 LEASE = dhcpinfolib.IscDhcpLeases(DHCPLeasesFile)
-LEASE.PrintCurrentLeases()
-print("Free leases: {}".format(LEASE.GetCurrentFreeLeases()))
-print("Active leases: {}".format(LEASE.GetCurrentActiveLeases()))
-print("Abandoned leases: {}".format(LEASE.GetCurrentAbandonedLeases()))
+   
+if args.all:
+    args.free=True
+    args.active=True
+    args.abandoned=True
+if args.abandoned:
+    print("Abandoned leases--------------------------------------------------------------------------------\n")
+    print "Lease IP\t    MAC\t                     StartDate\t               EndDate\t\t  State"    
+    LEASE.PrintAbandonedLeases()
+    print("Abandoned leases: {}".format(LEASE.GetCurrentAbandonedLeases()))
+    print("------------------------------------------------------------------------------------------------")
+if args.free:
+    print("Free leases-------------------------------------------------------------------------------------\n")
+    print "Lease IP\t    MAC\t                     StartDate\t               EndDate\t\t  State"    
+    LEASE.PrintFreeLeases()
+    print("Free leases: {}".format(LEASE.GetCurrentFreeLeases()))
+    print("------------------------------------------------------------------------------------------------\n")
+if args.active:    
+    print("Active leases-----------------------------------------------------------------------------------\n")
+    print "Lease IP\t    MAC\t                     StartDate\t               EndDate\t\t  State"    
+    LEASE.PrintActiveLeases()
+    print("Active leases: {}".format(LEASE.GetCurrentActiveLeases()))
+    print("------------------------------------------------------------------------------------------------\n")
+
+exit(0)
+
+        
 
 

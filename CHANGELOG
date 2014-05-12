@@ -1,5 +1,15 @@
 CHANGELOG
 
+-version 0.4
+Added command line argument parsing to dhcpinfo.py
+Added new methods to dhcpinfolib.py :
+    PrintActiveLeases(self):
+    PrintFreeLeases(self):
+    PrintAbandonedLeases(self):
+Modified output of dhcpinfo.py acording to arguments parsing
+Added checking if file exists before doing anything in dhcpinfo.py
+
+
 -Version 0.3
 Added new file dhcpinfolib.py
 Move clases to a library file dhcpinfolib.py to get code in better order.

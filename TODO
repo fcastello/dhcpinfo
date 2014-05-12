@@ -1,8 +1,7 @@
 TODO's
 
--Check if lease file exists otherwise inform if and end program
--Add command line parameters parsing and document usage.
--Add flags to chose what kind of lease I want information
+
 -Treat IP addresses as IP addresses and not strings as we treat it now.
 -Since IP addresses are strings ordering them is not as it shoulbe. Fix this.
+-Parse dhcp config files and get subnets definitions
 -Add Datetime treatment to dates which are treated as strings now
