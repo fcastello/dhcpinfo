@@ -1,5 +1,11 @@
 CHANGELOG
 
+-Version 0.3
+Added new file dhcpinfolib.py
+Move clases to a library file dhcpinfolib.py to get code in better order.
+Left only main program on file dhcpinfo.py and modified it to use the library file
+
+
 -Version 0.2
 Added TODO file
 Some code styling done to dhcpinfo.py
